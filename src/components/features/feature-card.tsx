@@ -5,7 +5,7 @@ import { ClaudeFeature } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn, CATEGORY_CONFIG } from "@/lib/utils";
+import { cn, CATEGORY_CONFIG, SOURCE_CONFIG } from "@/lib/utils";
 
 interface FeatureCardProps {
   feature: ClaudeFeature;
@@ -48,6 +48,9 @@ export function FeatureCard({ feature, onToggleLearned }: FeatureCardProps) {
               <Badge variant="outline" className="text-xs">
                 v{feature.version}
               </Badge>
+              <span className="text-xs text-muted-foreground">
+                {SOURCE_CONFIG[feature.source].icon}
+              </span>
             </div>
             <h3 className={cn(
               "font-medium truncate",

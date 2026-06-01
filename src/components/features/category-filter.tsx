@@ -10,13 +10,14 @@ interface CategoryFilterProps {
 }
 
 const categories: Array<{ value: FeatureCategory | "all"; label: string; color: string }> = [
-  { value: "all", label: "All", color: "bg-gray-500" },
-  { value: "tools", label: "Tools", color: "bg-blue-500" },
+  { value: "all", label: "すべて", color: "bg-gray-500" },
+  { value: "tools", label: "ツール", color: "bg-blue-500" },
   { value: "mcp", label: "MCP", color: "bg-purple-500" },
-  { value: "hooks", label: "Hooks", color: "bg-green-500" },
-  { value: "settings", label: "Settings", color: "bg-orange-500" },
-  { value: "general", label: "General", color: "bg-gray-500" },
-  { value: "other", label: "Other", color: "bg-gray-400" },
+  { value: "hooks", label: "フック", color: "bg-green-500" },
+  { value: "settings", label: "設定", color: "bg-orange-500" },
+  { value: "tui", label: "TUI", color: "bg-pink-500" },
+  { value: "general", label: "一般", color: "bg-gray-500" },
+  { value: "other", label: "その他", color: "bg-gray-400" },
 ];
 
 export function CategoryFilter({ selectedCategory, onCategoryChange }: CategoryFilterProps) {

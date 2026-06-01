@@ -1,35 +1,28 @@
 import { create } from 'zustand';
-import type { ClaudeFeature, LearningSession, FeatureCategory } from '@/types';
+import type { ClaudeFeature, LearningSession, FeatureCategory, FeatureSource } from '@/types';
 import {
   getFeatures,
   createFeature as dbCreateFeature,
   updateFeature as dbUpdateFeature,
-  deleteFeature as dbDeleteFeature,
-  getUnlearnedFeatures,
-  getFeaturesByCategory,
   getLearningSessions,
-  createLearningSession,
-  updateLearningSession,
-  deleteLearningSession,
   getLearningProgress,
 } from './db';
-import { fetchChangelog } from './github-api';
-import { parseChangelog, changelogToFeatures } from './changelog';
+import { fetchChangelog, fetchCodexChangelog } from './github-api';
+import { parseChangelog, parseCodexReleases, changelogToFeatures } from './changelog';
 
 interface FeatureStore {
-  // State
   features: ClaudeFeature[];
   learningSessions: LearningSession[];
   isLoading: boolean;
   lastFetched: Date | null;
+  currentSource: FeatureSource;
 
-  // Actions
   loadFeatures: () => Promise<void>;
   refreshFromChangelog: () => Promise<void>;
   markAsLearned: (featureId: string, notes?: string) => Promise<void>;
   unmarkAsLearned: (featureId: string) => Promise<void>;
-  getUnlearnedFeatures: () => ClaudeFeature[];
-  getFeaturesByCategory: (category: FeatureCategory) => ClaudeFeature[];
+  setSource: (source: FeatureSource) => void;
+  getSourceFeatures: () => ClaudeFeature[];
   loadLearningProgress: () => Promise<void>;
 }
 
@@ -38,6 +31,16 @@ export const useFeatureStore = create<FeatureStore>((set, get) => ({
   learningSessions: [],
   isLoading: false,
   lastFetched: null,
+  currentSource: 'codex',
+
+  setSource: (source: FeatureSource) => {
+    set({ currentSource: source });
+  },
+
+  getSourceFeatures: () => {
+    const { features, currentSource } = get();
+    return features.filter(f => f.source === currentSource);
+  },
 
   loadFeatures: async () => {
     set({ isLoading: true });
@@ -48,29 +51,50 @@ export const useFeatureStore = create<FeatureStore>((set, get) => ({
   refreshFromChangelog: async () => {
     set({ isLoading: true });
     try {
-      const content = await fetchChangelog();
-      const entries = parseChangelog(content);
-      const newFeatures = changelogToFeatures(entries);
+      const { currentSource } = get();
 
-      // Add features that don't exist yet
-      for (const feature of newFeatures) {
-        const exists = get().features.some(
-          f => f.name === feature.name && f.version === feature.version
-        );
-        if (!exists) {
-          await dbCreateFeature({
-            ...feature,
-            id: crypto.randomUUID(),
-            isLearned: false,
-            createdAt: new Date(),
-          });
+      if (currentSource === 'codex') {
+        const content = await fetchCodexChangelog();
+        const entries = parseCodexReleases(content);
+        const newFeatures = changelogToFeatures(entries, 'codex');
+
+        for (const feature of newFeatures) {
+          const exists = get().features.some(
+            f => f.name === feature.name && f.version === feature.version && f.source === 'codex'
+          );
+          if (!exists) {
+            await dbCreateFeature({
+              ...feature,
+              id: crypto.randomUUID(),
+              isLearned: false,
+              createdAt: new Date(),
+            });
+          }
+        }
+      } else {
+        const content = await fetchChangelog();
+        const entries = parseChangelog(content);
+        const newFeatures = changelogToFeatures(entries, 'claude-code');
+
+        for (const feature of newFeatures) {
+          const exists = get().features.some(
+            f => f.name === feature.name && f.version === feature.version && f.source === 'claude-code'
+          );
+          if (!exists) {
+            await dbCreateFeature({
+              ...feature,
+              id: crypto.randomUUID(),
+              isLearned: false,
+              createdAt: new Date(),
+            });
+          }
         }
       }
 
       await get().loadFeatures();
       set({ lastFetched: new Date() });
     } catch (error) {
-      console.error('Failed to refresh:', error);
+      console.error('更新に失敗:', error);
     }
     set({ isLoading: false });
   },
@@ -91,16 +115,7 @@ export const useFeatureStore = create<FeatureStore>((set, get) => ({
     await get().loadFeatures();
   },
 
-  getUnlearnedFeatures: () => {
-    return get().features.filter(f => !f.isLearned);
-  },
-
-  getFeaturesByCategory: (category: FeatureCategory) => {
-    return get().features.filter(f => f.category === category);
-  },
-
   loadLearningProgress: async () => {
-    // Progress is calculated on demand
     await get().loadFeatures();
   },
 }));

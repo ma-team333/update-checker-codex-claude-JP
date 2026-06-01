@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 
-const CHANGELOG_URL = 'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
+const CODEX_RELEASES_URL = 'https://api.github.com/repos/openai/codex/releases?per_page=30';
 
 export async function GET() {
   try {
-    const response = await fetch(CHANGELOG_URL);
+    const response = await fetch(CODEX_RELEASES_URL, {
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'update-checker-app',
+      },
+      next: { revalidate: 3600 },
+    });
 
     if (!response.ok) {
       return NextResponse.json(

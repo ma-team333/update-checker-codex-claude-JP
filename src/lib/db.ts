@@ -1,13 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { ClaudeFeature, LearningSession, LearningProgress, FeatureCategory } from '@/types';
+import type { ClaudeFeature, LearningSession, LearningProgress, FeatureCategory, FeatureSource } from '@/types';
 
 const db = new Dexie('FeatureLearnerDB') as Dexie & {
   features: EntityTable<ClaudeFeature, 'id'>;
   learningSessions: EntityTable<LearningSession, 'id'>;
 };
 
-db.version(1).stores({
-  features: 'id, name, category, version, releaseDate, isLearned, createdAt',
+db.version(2).stores({
+  features: 'id, name, category, version, releaseDate, isLearned, createdAt, source',
   learningSessions: 'id, featureId, startedAt, completedAt',
 });
 
@@ -18,7 +18,10 @@ export async function createFeature(feature: ClaudeFeature): Promise<string> {
   return await db.features.add(feature);
 }
 
-export async function getFeatures(): Promise<ClaudeFeature[]> {
+export async function getFeatures(source?: FeatureSource): Promise<ClaudeFeature[]> {
+  if (source) {
+    return await db.features.where('source').equals(source).reverse().sortBy('createdAt');
+  }
   return await db.features.orderBy('createdAt').reverse().toArray();
 }
 
@@ -32,16 +35,17 @@ export async function updateFeature(id: string, changes: Partial<ClaudeFeature>)
 
 export async function deleteFeature(id: string): Promise<void> {
   await db.features.delete(id);
-  // Also delete related learning sessions
   await db.learningSessions.where('featureId').equals(id).delete();
 }
 
-export async function getUnlearnedFeatures(): Promise<ClaudeFeature[]> {
-  return await db.features.filter(feature => !feature.isLearned).toArray();
+export async function getUnlearnedFeatures(source?: FeatureSource): Promise<ClaudeFeature[]> {
+  const all = await getFeatures(source);
+  return all.filter(feature => !feature.isLearned);
 }
 
-export async function getFeaturesByCategory(category: FeatureCategory): Promise<ClaudeFeature[]> {
-  return await db.features.where('category').equals(category).toArray();
+export async function getFeaturesByCategory(category: FeatureCategory, source?: FeatureSource): Promise<ClaudeFeature[]> {
+  const all = await getFeatures(source);
+  return all.filter(f => f.category === category);
 }
 
 // LearningSession operations
@@ -70,14 +74,15 @@ export async function getActiveLearningSession(): Promise<LearningSession | unde
 }
 
 // Statistics
-export async function getLearningProgress(): Promise<LearningProgress> {
-  const features = await getFeatures();
+export async function getLearningProgress(source?: FeatureSource): Promise<LearningProgress> {
+  const features = await getFeatures(source);
   const byCategory: Record<FeatureCategory, { total: number; learned: number }> = {
     general: { total: 0, learned: 0 },
     tools: { total: 0, learned: 0 },
     mcp: { total: 0, learned: 0 },
     hooks: { total: 0, learned: 0 },
     settings: { total: 0, learned: 0 },
+    tui: { total: 0, learned: 0 },
     other: { total: 0, learned: 0 },
   };
 
