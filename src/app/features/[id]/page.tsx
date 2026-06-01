@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Check, ExternalLink, Calendar, Tag, Clock } from 'lucide-react';
-import { CATEGORY_CONFIG } from '@/lib/utils';
+import { CATEGORY_CONFIG, SOURCE_CONFIG } from '@/lib/utils';
 
 export default function FeatureDetailPage() {
   const params = useParams();
@@ -17,14 +17,12 @@ export default function FeatureDetailPage() {
 
   if (!feature) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-black flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-            Feature not found
-          </h1>
+          <h1 className="text-2xl font-bold mb-4">機能が見つかりません</h1>
           <Button onClick={() => router.push('/features')} variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Features
+            機能一覧に戻る
           </Button>
         </div>
       </div>
@@ -32,6 +30,7 @@ export default function FeatureDetailPage() {
   }
 
   const categoryConfig = CATEGORY_CONFIG[feature.category] || CATEGORY_CONFIG.other;
+  const sourceConfig = SOURCE_CONFIG[feature.source];
 
   const handleToggleLearned = async () => {
     if (feature.isLearned) {
@@ -42,7 +41,7 @@ export default function FeatureDetailPage() {
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -50,104 +49,101 @@ export default function FeatureDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
-      <main className="max-w-4xl mx-auto py-12 px-4 sm:px-6">
-        {/* Back button */}
-        <Button
-          onClick={() => router.push('/features')}
-          variant="ghost"
-          className="mb-6 text-zinc-600 dark:text-zinc-400"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Features
-        </Button>
+    <div className="max-w-4xl mx-auto">
+      {/* Back button */}
+      <Button
+        onClick={() => router.push('/features')}
+        variant="ghost"
+        className="mb-6 text-muted-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        機能一覧に戻る
+      </Button>
 
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Badge className={`text-sm text-white ${categoryConfig.color}`}>
-              {categoryConfig.label}
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-sm font-medium">{sourceConfig.icon} {sourceConfig.label}</span>
+          <Badge className={`text-sm text-white ${categoryConfig.color}`}>
+            {categoryConfig.label}
+          </Badge>
+          <Badge variant="outline" className="text-sm">
+            v{feature.version}
+          </Badge>
+          {feature.isLearned && (
+            <Badge className="text-sm bg-green-500/10 text-green-500 border-green-500/20">
+              <Check className="w-3 h-3 mr-1" />
+              学習済み
             </Badge>
-            <Badge variant="outline" className="text-sm">
-              v{feature.version}
-            </Badge>
-            {feature.isLearned && (
-              <Badge className="text-sm bg-green-500/10 text-green-500 border-green-500/20">
-                <Check className="w-3 h-3 mr-1" />
-                Learned
-              </Badge>
-            )}
-          </div>
-
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
-            {feature.name}
-          </h1>
-
-          <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-500">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              Released: {formatDate(feature.releaseDate)}
-            </div>
-            <div className="flex items-center gap-1">
-              <Tag className="w-4 h-4" />
-              {feature.category}
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <Card className="border-zinc-200 dark:border-zinc-800 mb-6">
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
-              {feature.description || 'No description available.'}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex gap-4">
-          <Button
-            onClick={handleToggleLearned}
-            className={feature.isLearned ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}
-          >
-            {feature.isLearned ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Unmark as Learned
-              </>
-            ) : (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Mark as Learned
-              </>
-            )}
-          </Button>
-
-          {feature.changelogUrl && (
-            <Button variant="outline" asChild>
-              <a href={feature.changelogUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                View in Changelog
-              </a>
-            </Button>
           )}
         </div>
 
-        {/* Learning status */}
-        {feature.isLearned && feature.learnedAt && (
-          <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">
-                Learned on {formatDate(feature.learnedAt)}
-              </span>
-            </div>
+        <h1 className="text-3xl font-bold mb-2">{feature.name}</h1>
+
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Calendar className="w-4 h-4" />
+            リリース: {formatDate(feature.releaseDate)}
           </div>
+          <div className="flex items-center gap-1">
+            <Tag className="w-4 h-4" />
+            {categoryConfig.label}
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>説明</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground whitespace-pre-wrap">
+            {feature.description || '説明はありません。'}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Button
+          onClick={handleToggleLearned}
+          className={feature.isLearned ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}
+        >
+          {feature.isLearned ? (
+            <>
+              <Check className="w-4 h-4 mr-2" />
+              未学習に戻す
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4 mr-2" />
+              学習済みにする
+            </>
+          )}
+        </Button>
+
+        {feature.changelogUrl && (
+          <Button variant="outline" asChild>
+            <a href={feature.changelogUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Changelog で見る
+            </a>
+          </Button>
         )}
-      </main>
+      </div>
+
+      {/* Learning status */}
+      {feature.isLearned && feature.learnedAt && (
+        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <Clock className="w-4 h-4" />
+            <span className="text-sm">
+              学習完了: {formatDate(feature.learnedAt)}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

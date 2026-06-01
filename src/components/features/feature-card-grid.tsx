@@ -11,7 +11,6 @@ interface FeatureCardGridProps {
 }
 
 export function FeatureCardGrid({ features, onToggleLearned }: FeatureCardGridProps) {
-  // Sort features by version (newest first)
   const sortedFeatures = useMemo(() => {
     return [...features].sort((a, b) => compareVersions(a.version, b.version));
   }, [features]);
@@ -19,7 +18,7 @@ export function FeatureCardGrid({ features, onToggleLearned }: FeatureCardGridPr
   if (sortedFeatures.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No features found. Click refresh to fetch from the changelog.</p>
+        <p className="text-muted-foreground">機能が見つかりません。「Changelog を取得」をクリックしてください。</p>
       </div>
     );
   }

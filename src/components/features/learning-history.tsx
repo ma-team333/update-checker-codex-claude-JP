@@ -12,7 +12,7 @@ export function LearningHistory({ sessions }: LearningHistoryProps) {
   if (sessions.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No learning history yet. Start exploring features!</p>
+        <p className="text-muted-foreground">学習履歴がまだありません。機能の探索を始めましょう！</p>
       </div>
     );
   }
@@ -22,13 +22,13 @@ export function LearningHistory({ sessions }: LearningHistoryProps) {
       {sessions.map((session) => (
         <Card key={session.id}>
           <CardHeader>
-            <CardTitle className="text-lg">Feature ID: {session.featureId}</CardTitle>
+            <CardTitle className="text-lg">機能 ID: {session.featureId}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Started: {format(new Date(session.startedAt), "PPP")}</span>
+              <span>開始: {format(new Date(session.startedAt), "PPP")}</span>
               {session.completedAt && (
-                <span>Completed: {format(new Date(session.completedAt), "PPP")}</span>
+                <span>完了: {format(new Date(session.completedAt), "PPP")}</span>
               )}
             </div>
             {session.notes && (

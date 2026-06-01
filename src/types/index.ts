@@ -1,4 +1,6 @@
-export type FeatureCategory = 'general' | 'tools' | 'mcp' | 'hooks' | 'settings' | 'other';
+export type FeatureCategory = 'general' | 'tools' | 'mcp' | 'hooks' | 'settings' | 'tui' | 'other';
+
+export type FeatureSource = 'claude-code' | 'codex';
 
 export interface ClaudeFeature {
   id: string;
@@ -11,6 +13,7 @@ export interface ClaudeFeature {
   isLearned: boolean;
   learnedAt?: Date;
   createdAt: Date;
+  source: FeatureSource;
 }
 
 export interface LearningSession {

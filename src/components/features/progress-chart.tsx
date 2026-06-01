@@ -16,7 +16,7 @@ export function ProgressChart({ features }: ProgressChartProps) {
       <div className="text-center">
         <div className="text-6xl font-bold mb-2">{percentage}%</div>
         <p className="text-muted-foreground">
-          {learned} of {total} features learned
+          {learned} / {total} 機能を学習済み
         </p>
         <div className="mt-4 w-full bg-secondary rounded-full h-4 max-w-md mx-auto">
           <div
